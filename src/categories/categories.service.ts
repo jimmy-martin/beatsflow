@@ -1,26 +1,64 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, NotFoundException } from '@nestjs/common';
 import { CreateCategoryDto } from './dto/create-category.dto';
 import { UpdateCategoryDto } from './dto/update-category.dto';
+import { PrismaService } from 'src/prisma/prisma.service';
+import { Category as CategoryModel } from '@prisma/client';
 
 @Injectable()
 export class CategoriesService {
-  create(createCategoryDto: CreateCategoryDto) {
-    return 'This action adds a new category';
+  constructor(private prismaService: PrismaService) {}
+
+  async create(createCategoryDto: CreateCategoryDto): Promise<CategoryModel> {
+    const category = await this.prismaService.category.create({
+      data: {
+        name: createCategoryDto.name,
+        description: createCategoryDto.description,
+        image_url: createCategoryDto.image_url,
+      },
+    });
+    return category;
   }
 
-  findAll() {
-    return `This action returns all categories`;
+  async findAll(): Promise<CategoryModel[]> {
+    const categories = await this.prismaService.category.findMany();
+    return categories;
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} category`;
+  async findOne(id: number): Promise<CategoryModel | null> {
+    const category = await this.prismaService.category.findUnique({
+      where: { id },
+    });
+
+    if (!category) {
+      throw new NotFoundException(`Category #${id} not found`);
+    }
+
+    return category;
   }
 
-  update(id: number, updateCategoryDto: UpdateCategoryDto) {
-    return `This action updates a #${id} category`;
+  async update(
+    id: number,
+    updateCategoryDto: UpdateCategoryDto,
+  ): Promise<CategoryModel> {
+    await this.findOne(id);
+
+    const category = await this.prismaService.category.update({
+      where: { id },
+      data: {
+        name: updateCategoryDto.name,
+        description: updateCategoryDto.description,
+        image_url: updateCategoryDto.image_url,
+      },
+    });
+
+    return category;
   }
 
-  remove(id: number) {
-    return `This action removes a #${id} category`;
+  async remove(id: number): Promise<void> {
+    await this.findOne(id);
+
+    await this.prismaService.category.delete({
+      where: { id },
+    });
   }
 }
