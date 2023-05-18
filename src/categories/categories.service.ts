@@ -24,7 +24,7 @@ export class CategoriesService {
     return categories;
   }
 
-  async findOne(id: number): Promise<CategoryModel | null> {
+  async findOne(id: number): Promise<CategoryModel> {
     const category = await this.prismaService.category.findUnique({
       where: { id },
     });
