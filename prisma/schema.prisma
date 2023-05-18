@@ -1,0 +1,68 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model Beat {
+  id          Int      @id @default(autoincrement())
+  title       String
+  description String?
+  price       Float
+  tempo       Int?
+  image_url   String?  @default("beat_placeholder.png")
+  file_path   String
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  user_id      Int
+  user         User          @relation(fields: [user_id], references: [id])
+  category_id  Int
+  category     Category      @relation(fields: [category_id], references: [id])
+  transactions Transaction[]
+}
+
+model User {
+  id         Int      @id @default(autoincrement())
+  username   String   
+  email      String   @unique
+  password   String
+  role       String   @default("user")
+  first_name String?
+  last_name  String?
+  avatar_url String?  @default("avatar_placeholder.png")
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  beats        Beat[]
+  transactions Transaction[]
+}
+
+model Category {
+  id          Int      @id @default(autoincrement())
+  name        String
+  description String?
+  image_url   String?  @default("category_placeholder.png")
+  created_at  DateTime @default(now())
+  updated_at  DateTime @updatedAt
+
+  beats Beat[]
+}
+
+model Transaction {
+  id         Int      @id @default(autoincrement())
+  amount     Float
+  created_at DateTime @default(now())
+  updated_at DateTime @updatedAt
+
+  user_id Int
+  user    User @relation(fields: [user_id], references: [id])
+  beat_id Int
+  beat    Beat @relation(fields: [beat_id], references: [id])
+}
